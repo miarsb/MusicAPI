@@ -5,17 +5,15 @@ class Spotify:
 
     def __init__(self, redditList, playlistTitle, spotifyUser):
         self.playlistTitle = playlistTitle
-        #self.tokenFile = open('./token.txt', 'r')
-        #self.token = self.tokenFile.read()
-        #self.spot = spotipy.Spotify(auth=self.token)
-
-        self.spotifyUser = spotifyUser
-        self.auth(self.spotifyUser)
         self.redditList = redditList
+
+
+
 
         #username is required to authorize developer api account for playlist creation on personal account.
         #call the auth method to run a test call to confirm whether we're authorized and if not, reauthorize
-
+        self.spotifyUser = spotifyUser
+        self.auth(self.spotifyUser)
 
         #proceeding with track lookup using the reddit list
         self.lookUpList()
