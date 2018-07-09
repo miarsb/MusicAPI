@@ -3,51 +3,59 @@ import spotipy.util as util
 
 class Spotify:
 
-    def __init__(self, redditList, playlistTitle):
+    def __init__(self, redditList, playlistTitle, spotifyUser):
         self.playlistTitle = playlistTitle
-        self.tokenFile = open('./token.txt', 'r')
-        self.token = self.tokenFile.read()
-        # print(self.token)
-        self.spot = spotipy.Spotify(auth=self.token)
+        #self.tokenFile = open('./token.txt', 'r')
+        #self.token = self.tokenFile.read()
+        #self.spot = spotipy.Spotify(auth=self.token)
 
+        self.spotifyUser = spotifyUser
+        self.auth(self.spotifyUser)
         self.redditList = redditList
 
-        self.auth('Branden Miars')
+        #username is required to authorize developer api account for playlist creation on personal account.
+        #call the auth method to run a test call to confirm whether we're authorized and if not, reauthorize
+
+
+        #proceeding with track lookup using the reddit list
         self.lookUpList()
+        #creating the list with the spotify track URLs we got in lookUpList()
         self.playlistCreation()
 
     def lookUpList(self):
         self.spotifyLookUp = []
         self.listOfUrls = []
-        #search for each "artist - title" in the list from RedditAPI and append the search result to new list
+        #search for each "artist - title" in the list from RedditAPI and append the spotify result to new list
         for track in self.redditList.formattedTitles:
             self.spotifyLookUp.append(self.spot.search(q=track, type='track'))
+
         #breakdown the search results to just the the track url and append to new list
         for item in self.spotifyLookUp:
             #check to see if we got a result
             if item['tracks']['items']:
                 #if we got a result then grab the URL for the track from the FIRST result[0] and append to final list
                 self.listOfUrls.append(item['tracks']['items'][0]['external_urls']['spotify'])
-        #print(self.listOfUrls)
-
-
 
     def playlistCreation(self):
-        self.spot.user_playlist_create("1213766491", self.playlistTitle, public=True)
-        user_playlists = self.spot.user_playlists("1213766491", limit=50, offset=0)
-        playlist_ID = ''
-        for i in range(len(user_playlists["items"])):
-            if user_playlists["items"][i]["name"] == self.playlistTitle:
-                playlist_ID = user_playlists["items"][i]["id"]
+
+        new_playlist = self.spot.user_playlist_create("1213766491", self.playlistTitle, public=True)
+        playlist_ID = new_playlist['id']
         self.spot.user_playlist_add_tracks('1213766491', playlist_ID, self.listOfUrls)
 
     def auth(self, username):
+
+        secretFile = open('./secret.txt', 'r')
+        secretID = secretFile.read()
+        self.tokenFile = open('./token.txt', 'r')
+        self.token = self.tokenFile.read()
+        self.spot = spotipy.Spotify(auth=self.token)
+
         try:
             self.spot.search(q='test', type='track')
-        except Exception as e:
+        except spotipy.client.SpotifyException:
             self.writeToToken = self.tokenFile = open('./token.txt', 'w')
-            self.writeToToken.write(util.prompt_for_user_token(username,'playlist-modify-public',client_id='073c1bc21d634eff9a9452850a646cde',client_secret='7b695fca861842e8bf54f3b38dd81563',redirect_uri='http://www.example.com/'))
+            self.writeToToken.write(util.prompt_for_user_token(username,'playlist-modify-public',client_id='073c1bc21d634eff9a9452850a646cde',client_secret=secretID,redirect_uri='http://www.example.com/'))
+            self.auth(self.spotifyUser)
 
 #Spotify()
 
-#util.prompt_for_user_token('Branden Miars','playlist-modify-public',client_id='073c1bc21d634eff9a9452850a646cde',client_secret='7b695fca861842e8bf54f3b38dd81563',redirect_uri='http://www.example.com/')
