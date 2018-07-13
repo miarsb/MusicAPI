@@ -3,11 +3,11 @@ import spotify
 import argparse
 
 
-def create_a_playlist(reddit_url, playlist_title, username):
+def create_a_playlist(reddit_url, playlist_title):
     reddit_list = reddit.RedditAPI(reddit_url)
     titles = reddit_list.get_titles()
 
-    spot = spotify.Spotify(titles, playlist_title, username)
+    spot = spotify.Spotify(titles, playlist_title)
     spot.playlist_creation()
 
 
@@ -22,10 +22,6 @@ if __name__ == '__main__':
         nargs='*',
         required=True,
         help='name the playlist')
-    parser.add_argument('--user', '-u',
-        nargs='*',
-        required=True,
-        help='Spotify username')
     args = parser.parse_args()
 
     subreddit = '/r/listentothis'
@@ -33,9 +29,8 @@ if __name__ == '__main__':
     reddit_url = 'https://www.reddit.com{}/top/.json?t={}'.format(subreddit, interval)
 
     playlist_title = ' '.join(args.name)
-    username = ' '.join(args.user)
 
-    create_a_playlist(reddit_url, playlist_title, username)
+    create_a_playlist(reddit_url, playlist_title)
 
 
 
